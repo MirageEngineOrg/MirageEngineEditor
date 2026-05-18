@@ -2,10 +2,16 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 qt_standard_project_setup()
 
+
+qt_add_resources(ENGINE_RESOURCES resources.qrc)
 qt_add_executable(MirageEngineEditor
+    EditorTitleBar/EditorTitleBar.cpp
     main.cpp
     MainWindow/MainWindow.cpp
+        ${ENGINE_RESOURCES}
 )
+
+
 target_include_directories(MirageEngineEditor
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/EditorQt/public>
