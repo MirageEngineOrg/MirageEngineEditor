@@ -1,0 +1,8 @@
+[
+{
+  "directory": "D:/projects/MirageProject/MirageEngineEditor/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -ID:/Projects/MirageProject/MirageEngineEditor/include -std=c++20 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -o CMakeFiles\\MirageEngineEditor.dir\\src\\main.cpp.obj -c D:\\Projects\\MirageProject\\MirageEngineEditor\\src\\main.cpp",
+  "file": "D:/Projects/MirageProject/MirageEngineEditor/src/main.cpp",
+  "output": "D:/projects/MirageProject/MirageEngineEditor/build/CMakeFiles/MirageEngineEditor.dir/src/main.cpp.obj"
+}
+]
