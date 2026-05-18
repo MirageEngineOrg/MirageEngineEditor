@@ -28,8 +28,6 @@ target_link_libraries(MirageEngineEditor
 
 target_compile_features(MirageEngineEditor PRIVATE cxx_std_20)
 
-mirage_configure_target(MirageEngineEditor)
-
 install(TARGETS MirageEngineEditor
     EXPORT MirageEngineEditorTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

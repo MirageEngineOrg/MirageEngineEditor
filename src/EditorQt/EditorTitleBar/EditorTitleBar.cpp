@@ -121,24 +121,24 @@ void EditorTitleBar::BuildMenuBar() {
     menuBarLayout_->addWidget(windowButton_);
     menuBarLayout_->addStretch(1);
 
-    minimizeButton_ = CreateWindowControlButton(
-        QString::fromUtf8("\u2212"),
-        "WindowControlButton",
-        kWindowControlButtonWidth,
-        kWindowControlGlyphFontSize
-    );
-    maximizeButton_ = CreateWindowControlButton(
-        QString::fromUtf8("\u25A1"),
-        "WindowControlButton",
-        kWindowControlButtonWidth,
-        kWindowControlGlyphFontSize
-    );
-    closeButton_ = CreateWindowControlButton(
-        QString::fromUtf8("\u00D7"),
-        "CloseWindowControlButton",
-        kWindowControlButtonWidth,
-        kCloseControlGlyphFontSize
-    );
+    minimizeButton_ = CreateWindowControlButton(WindowControlButtonConfig{
+        .text = QString::fromUtf8("\u2212"),
+        .objectName = "WindowControlButton",
+        .width = kWindowControlButtonWidth,
+        .fontSize = kWindowControlGlyphFontSize,
+    });
+    maximizeButton_ = CreateWindowControlButton(WindowControlButtonConfig{
+        .text = QString::fromUtf8("\u25A1"),
+        .objectName = "WindowControlButton",
+        .width = kWindowControlButtonWidth,
+        .fontSize = kWindowControlGlyphFontSize,
+    });
+    closeButton_ = CreateWindowControlButton(WindowControlButtonConfig{
+        .text = QString::fromUtf8("\u00D7"),
+        .objectName = "CloseWindowControlButton",
+        .width = kWindowControlButtonWidth,
+        .fontSize = kCloseControlGlyphFontSize,
+    });
 
     menuBarLayout_->addWidget(minimizeButton_);
     menuBarLayout_->addWidget(maximizeButton_);
@@ -208,17 +208,14 @@ QPushButton* EditorTitleBar::CreateMenuButton(const QString& text, int width) {
 }
 
 QPushButton* EditorTitleBar::CreateWindowControlButton(
-    const QString& text,
-    const QString& objectName,
-    int width,
-    int fontSize
+    const WindowControlButtonConfig& config
 ) {
-    auto* button = new QPushButton(text, menuBarBackground_);
-    button->setObjectName(objectName);
+    auto* button = new QPushButton(config.text, menuBarBackground_);
+    button->setObjectName(config.objectName);
     button->setCursor(Qt::PointingHandCursor);
-    button->setFixedSize(width, kMenuBarHeight);
+    button->setFixedSize(config.width, kMenuBarHeight);
     button->setFlat(true);
-    button->setStyleSheet(QString("font-size: %1px;").arg(fontSize));
+    button->setStyleSheet(QString("font-size: %1px;").arg(config.fontSize));
     return button;
 }
 

@@ -12,6 +12,13 @@ class QPushButton;
 
 namespace Mirage::EditorQt {
 
+struct WindowControlButtonConfig {
+    QString text;
+    QString objectName;
+    int width;
+    int fontSize;
+};
+
 class EditorTitleBar final : public QWidget {
 public:
     explicit EditorTitleBar(QWidget* parent = nullptr);
@@ -30,10 +37,7 @@ private:
     [[nodiscard]] QWidget* CreateLogoArea();
     [[nodiscard]] QPushButton* CreateMenuButton(const QString& text, int width);
     [[nodiscard]] QPushButton* CreateWindowControlButton(
-        const QString& text,
-        const QString& objectName,
-        int width,
-        int fontSize
+        const WindowControlButtonConfig& config
     );
     [[nodiscard]] QLabel* CreateLogoLabel(const QPixmap& logoPixmap);
 
