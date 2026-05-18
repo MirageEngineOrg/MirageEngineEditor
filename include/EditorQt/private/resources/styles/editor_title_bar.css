@@ -1,0 +1,54 @@
+#EditorTitleBarMenuBar {
+    background-color: #1c222b;
+    border: none;
+}
+
+#EditorTitleBarViewportBar {
+    background-color: #202732;
+    border: none;
+    border-bottom: 1px solid #39424d;
+}
+
+#EditorLogoArea {
+    background-color: #171c23;
+    border-right: 1px solid #39424d;
+    border-bottom: 1px solid #39424d;
+}
+
+#EditorMenuButton {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #e3e7ec;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 0px;
+}
+
+#EditorMenuButton:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+#WindowControlButton {
+    background: transparent;
+    border: none;
+    color: #a3acb6;
+    font-weight: 500;
+    padding: 0px;
+}
+
+#WindowControlButton:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+#CloseWindowControlButton {
+    background: transparent;
+    border: none;
+    color: #f1d4d6;
+    font-weight: 500;
+    padding: 0px;
+}
+
+#CloseWindowControlButton:hover {
+    background-color: #3b2427;
+}
