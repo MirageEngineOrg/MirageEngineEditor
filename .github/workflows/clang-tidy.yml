@@ -20,7 +20,9 @@ jobs:
             clang \
             clang-tidy \
             cmake \
-            ninja-build
+            ninja-build \
+            qt6-base-dev \
+            qt6-base-dev-tools
 
       - name: Configure
         run: |
@@ -38,4 +40,3 @@ jobs:
         run: |
           find src -name '*.cpp' | \
           xargs clang-tidy -p build
-
