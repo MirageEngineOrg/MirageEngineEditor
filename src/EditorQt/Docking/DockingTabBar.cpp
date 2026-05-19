@@ -516,7 +516,6 @@ void DockingTabBar::RefreshTabStates() {
 }
 
 bool DockingTabBar::eventFilter(QObject* watched, QEvent* event) {
-#ifdef Q_OS_WIN
     if (auto* tab = qobject_cast<DockingTab*>(watched); tab != nullptr) {
         if (event->type() == QEvent::MouseButtonPress) {
             auto* mouseEvent = static_cast<QMouseEvent*>(event);
@@ -625,6 +624,7 @@ bool DockingTabBar::eventFilter(QObject* watched, QEvent* event) {
         }
     }
 
+#ifdef Q_OS_WIN
     Q_UNUSED(watched);
     return QWidget::eventFilter(watched, event);
 #else
