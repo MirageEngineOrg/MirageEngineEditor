@@ -3,6 +3,8 @@
 #include "MainWindow/MainWindowInternal.hpp"
 
 #include "Application/EditorApplication.hpp"
+#include "Docking/Demo/InspectorDockingWidget.hpp"
+#include "Docking/Demo/SceneDockingWidget.hpp"
 
 #include <QByteArray>
 #include <QPoint>
@@ -51,15 +53,50 @@ MainWindow::MainWindow(QWidget* parent)
     rootLayout->setContentsMargins(0, 0, 0, 0);
     rootLayout->setSpacing(0);
 
+    mainDockingWindow_ = new DockingWindow(centralWidget);
+    mainDockingWindow_->setObjectName("MainDockingWindow");
+    mainDockingWindow_->SetChromeVisible(false);
+    auto* mainViewportWidget = new SceneDockingWidget("Scene", false);
+    mainDockingWindow_->addDockWidget(mainViewportWidget);
+
     editorTitleBar_ = new EditorTitleBar(centralWidget);
+
+    mainDockingTabBar_ = new DockingTabBar(editorTitleBar_);
+    const int mainViewportTabIndex = mainDockingTabBar_->AddTab(
+        mainViewportWidget->GetTitle(),
+        mainViewportWidget->IsClosable()
+    );
+    mainDockingTabBar_->SetCurrentIndex(mainViewportTabIndex);
+    editorTitleBar_->SetViewportWidget(mainDockingTabBar_);
+
     rootLayout->addWidget(editorTitleBar_);
-    rootLayout->addStretch(1);
+    rootLayout->addWidget(mainDockingWindow_, 1);
 
     setCentralWidget(centralWidget);
 
 #ifdef Q_OS_WIN
     EnableSnapAndResize(this);
 #endif
+
+    floatingDockingWindow_ = new DockingWindow();
+    floatingDockingWindow_->setAttribute(Qt::WA_DeleteOnClose, false);
+    floatingDockingWindow_->setWindowTitle("Floating Docking Window");
+    floatingDockingWindow_->resize(860, 540);
+    floatingDockingWindow_->move(x() + 120, y() + 120);
+    floatingDockingWindow_->addDockWidget(new SceneDockingWidget("Scene", true));
+    floatingDockingWindow_->addDockWidget(new InspectorDockingWidget("Inspector", true));
+    floatingDockingWindow_->show();
+
+
+    floatingDockingWindow2_ = new DockingWindow();
+    floatingDockingWindow2_->setAttribute(Qt::WA_DeleteOnClose, false);
+    floatingDockingWindow2_->setWindowTitle("Floating Docking Window");
+    floatingDockingWindow2_->resize(860, 540);
+    floatingDockingWindow2_->move(x() + 120, y() + 120);
+    floatingDockingWindow2_->addDockWidget(new SceneDockingWidget("Scene", true));
+    floatingDockingWindow2_->addDockWidget(new InspectorDockingWidget("Inspector", true));
+    floatingDockingWindow2_->show();
+
 
     const auto& config = editorApplication_.GetConfig();
     Q_UNUSED(config);

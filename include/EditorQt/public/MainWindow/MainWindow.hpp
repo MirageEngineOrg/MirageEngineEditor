@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Application/EditorApplication.hpp"
+#include "Docking/DockingTabBar.hpp"
+#include "Docking/DockingWindow.hpp"
 #include "EditorTitleBar/EditorTitleBar.hpp"
 
 #include <QMainWindow>
@@ -18,6 +20,10 @@ public:
 private:
     Mirage::EditorCore::EditorApplication editorApplication_;
     EditorTitleBar* editorTitleBar_ {nullptr};
+    DockingTabBar* mainDockingTabBar_ {nullptr};
+    DockingWindow* mainDockingWindow_ {nullptr};
+    DockingWindow* floatingDockingWindow_ {nullptr};
+    DockingWindow* floatingDockingWindow2_ {nullptr};
 };
 
 } // namespace Mirage::EditorQt

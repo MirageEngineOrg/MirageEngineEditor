@@ -9,6 +9,7 @@ class QHBoxLayout;
 class QLabel;
 class QObject;
 class QPushButton;
+class QVBoxLayout;
 
 namespace Mirage::EditorQt {
 
@@ -24,6 +25,7 @@ public:
     explicit EditorTitleBar(QWidget* parent = nullptr);
 
     [[nodiscard]] bool IsDragZone(const QPoint& localPosition) const;
+    void SetViewportWidget(QWidget* widget);
 
 private:
     bool eventFilter(QObject* watched, QEvent* event) override;
@@ -45,6 +47,7 @@ private:
     QFrame* menuBarBackground_ {nullptr};
     QFrame* viewportTitleBarBackground_ {nullptr};
     QHBoxLayout* menuBarLayout_ {nullptr};
+    QVBoxLayout* viewportLayout_ {nullptr};
     QLabel* logoLabel_ {nullptr};
     QPushButton* fileButton_ {nullptr};
     QPushButton* editButton_ {nullptr};

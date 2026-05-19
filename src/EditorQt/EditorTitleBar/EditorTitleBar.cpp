@@ -146,10 +146,26 @@ void EditorTitleBar::BuildMenuBar() {
 }
 
 void EditorTitleBar::BuildViewportTitleBar() {
-    auto* viewportLayout = new QHBoxLayout(viewportTitleBarBackground_);
-    viewportLayout->setContentsMargins(0, 0, 0, 0);
-    viewportLayout->setSpacing(0);
-    viewportLayout->addStretch(1);
+    viewportLayout_ = new QVBoxLayout(viewportTitleBarBackground_);
+    viewportLayout_->setContentsMargins(0, 0, 0, 0);
+    viewportLayout_->setSpacing(0);
+}
+
+void EditorTitleBar::SetViewportWidget(QWidget* widget) {
+    if (viewportLayout_ == nullptr || widget == nullptr) {
+        return;
+    }
+
+    while (QLayoutItem* item = viewportLayout_->takeAt(0)) {
+        if (QWidget* childWidget = item->widget(); childWidget != nullptr) {
+            childWidget->setParent(nullptr);
+        }
+
+        delete item;
+    }
+
+    widget->setParent(viewportTitleBarBackground_);
+    viewportLayout_->addWidget(widget);
 }
 
 void EditorTitleBar::ConnectWindowControls() {
