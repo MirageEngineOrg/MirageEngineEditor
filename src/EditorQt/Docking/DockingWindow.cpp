@@ -19,7 +19,7 @@
 namespace {
 
 void EnableSnapAndResize(QWidget* widget) {
-    const auto hwnd = reinterpret_cast<HWND>(widget->winId());
+    auto *const hwnd = reinterpret_cast<HWND>(widget->winId());
 
     LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
     style |= WS_THICKFRAME | WS_MAXIMIZEBOX | WS_CAPTION;
@@ -198,14 +198,10 @@ int DockingWindow::addDockWidgetAt(DockingWidget* dockingWidget, int index) {
     return tabIndex;
 }
 
-void DockingWindow::TransferDockWidgetTo(
-    int from,
-    DockingTabBar* targetTabBar,
-    int to,
-    const QPoint& globalPosition,
-    const QPoint& grabOffset,
-    bool continueDrag
-) {
+void DockingWindow::TransferDockWidgetTo(const int from, DockingTabBar *targetTabBar,
+                                         const int to_idx,
+                                         const QPoint &globalPosition, const QPoint &grabOffset,
+                                         const bool continueDrag) {
     DockingWidget* dockingWidget = TakeDockWidget(from);
     if (dockingWidget == nullptr || targetTabBar == nullptr) {
         return;
@@ -218,7 +214,7 @@ void DockingWindow::TransferDockWidgetTo(
     }
 
     targetTabBar->ClearExternalPlaceholder();
-    const int insertedIndex = targetDockingWindow->addDockWidgetAt(dockingWidget, to);
+    const int insertedIndex = targetDockingWindow->addDockWidgetAt(dockingWidget, to_idx);
     if (continueDrag) {
         targetTabBar->ContinueTransferredDrag(insertedIndex, globalPosition, grabOffset);
     }
@@ -273,27 +269,27 @@ void DockingWindow::OnTabCloseRequested(int index) {
     RefreshWindowTitle();
 }
 
-void DockingWindow::OnTabMoveRequested(int from, int to) {
-    if (from == to || from < 0 || to < 0 || from >= stack_->count() || to >= stack_->count()) {
+void DockingWindow::OnTabMoveRequested(const int from_idx, const int to_idx) {
+    if (from_idx == to_idx || from_idx < 0 || to_idx < 0 || from_idx >= stack_->count() || to_idx >= stack_->count()) {
         return;
     }
 
-    QWidget* widget = stack_->widget(from);
-    const bool wasCurrent = stack_->currentIndex() == from;
+    QWidget* widget = stack_->widget(from_idx);
+    const bool wasCurrent = stack_->currentIndex() == from_idx;
     stack_->removeWidget(widget);
-    stack_->insertWidget(to, widget);
+    stack_->insertWidget(to_idx, widget);
 
     if (wasCurrent) {
-        stack_->setCurrentIndex(to);
-    } else if (stack_->currentIndex() == from) {
-        stack_->setCurrentIndex(to);
+        stack_->setCurrentIndex(to_idx);
+    } else if (stack_->currentIndex() == from_idx) {
+        stack_->setCurrentIndex(to_idx);
     }
 
     RefreshWindowTitle();
 }
 
-void DockingWindow::OnTabTransferRequested(int from, DockingTabBar* targetTabBar, int to) {
-    TransferDockWidgetTo(from, targetTabBar, to, {}, {}, false);
+void DockingWindow::OnTabTransferRequested(int from_idx, DockingTabBar *targetTabBar, int to_idx) {
+    TransferDockWidgetTo(from_idx, targetTabBar, to_idx, {}, {}, false);
 }
 
 void DockingWindow::ApplyStyles() {

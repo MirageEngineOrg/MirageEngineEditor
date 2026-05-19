@@ -115,21 +115,21 @@ int DockingTabBar::GetExternalPlaceholderIndex() const noexcept {
     return externalPlaceholderIndex_;
 }
 
-void DockingTabBar::MoveTab(int from, int to) {
-    if (from < 0 || from >= tabs_.size() || to < 0 || to >= tabs_.size() || from == to) {
+void DockingTabBar::MoveTab(const int from_idx, const int to_idx) {
+    if (from_idx < 0 || from_idx >= tabs_.size() || to_idx < 0 || to_idx >= tabs_.size() || from_idx == to_idx) {
         return;
     }
 
-    DockingTab* tab = tabs_.takeAt(from);
-    tabs_.insert(to, tab);
+    DockingTab* tab = tabs_.takeAt(from_idx);
+    tabs_.insert(to_idx, tab);
     layout_->removeWidget(tab);
-    layout_->insertWidget(to, tab);
+    layout_->insertWidget(to_idx, tab);
 
-    if (currentIndex_ == from) {
-        currentIndex_ = to;
-    } else if (from < currentIndex_ && to >= currentIndex_) {
+    if (currentIndex_ == from_idx) {
+        currentIndex_ = to_idx;
+    } else if (from_idx < currentIndex_ && to_idx >= currentIndex_) {
         --currentIndex_;
-    } else if (from > currentIndex_ && to <= currentIndex_) {
+    } else if (from_idx > currentIndex_ && to_idx <= currentIndex_) {
         ++currentIndex_;
     }
 
@@ -138,9 +138,11 @@ void DockingTabBar::MoveTab(int from, int to) {
 }
 
 bool DockingTabBar::IsDragZone(const QPoint& localPosition) const {
-    if (QWidget* child = childAt(localPosition); child == nullptr) {
+    QWidget* child = childAt(localPosition);
+    if (child == nullptr) {
         return true;
-    } else if (auto* tab = qobject_cast<DockingTab*>(child); tab != nullptr) {
+    }
+    if (auto* tab = qobject_cast<DockingTab*>(child); tab != nullptr) {
         return tab->IsDragZone(tab->mapFrom(this, localPosition));
     }
 
@@ -217,8 +219,8 @@ void DockingTabBar::CommitDragMove() {
         return;
     }
 
-    const int from = dragOriginalIndex_;
-    const int to = dragTargetIndex_;
+    const int from_idx = dragOriginalIndex_;
+    const int to_idx = dragTargetIndex_;
 
     if (dragPlaceholder_ != nullptr) {
         layout_->removeWidget(dragPlaceholder_);
@@ -226,24 +228,24 @@ void DockingTabBar::CommitDragMove() {
         dragPlaceholder_ = nullptr;
     }
 
-    layout_->insertWidget(to, dragTab_);
+    layout_->insertWidget(to_idx, dragTab_);
     dragTab_->releaseMouse();
     dragTab_->show();
     dragTab_->move(0, 0);
 
-    if (from >= 0 && to >= 0 && from != to) {
-        DockingTab* movedTab = tabs_.takeAt(from);
-        tabs_.insert(to, movedTab);
+    if (from_idx >= 0 && to_idx >= 0 && from_idx != to_idx) {
+        DockingTab* movedTab = tabs_.takeAt(from_idx);
+        tabs_.insert(to_idx, movedTab);
 
-        if (currentIndex_ == from) {
-            currentIndex_ = to;
-        } else if (from < currentIndex_ && to >= currentIndex_) {
+        if (currentIndex_ == from_idx) {
+            currentIndex_ = to_idx;
+        } else if (from_idx < currentIndex_ && to_idx >= currentIndex_) {
             --currentIndex_;
-        } else if (from > currentIndex_ && to <= currentIndex_) {
+        } else if (from_idx > currentIndex_ && to_idx <= currentIndex_) {
             ++currentIndex_;
         }
 
-        emit TabMoveRequested(from, to);
+        emit TabMoveRequested(from_idx, to_idx);
     }
 
     RefreshTabStates();
@@ -269,8 +271,7 @@ void DockingTabBar::CommitDragTransfer(DockingTabBar* targetTabBar) {
 
 int DockingTabBar::ComputeDropIndex(int localX) const {
     int targetIndex = 0;
-    for (qsizetype index = 0; index < tabs_.size(); ++index) {
-        DockingTab* tab = tabs_.at(index);
+    for (const auto tab : tabs_) {
         if (tab == dragTab_) {
             continue;
         }

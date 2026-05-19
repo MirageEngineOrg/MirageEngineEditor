@@ -8,7 +8,7 @@
 
 namespace Mirage::EditorQt {
 
-DockingTab::DockingTab(QString title, bool closable, QWidget* parent)
+DockingTab::DockingTab(const QString& title, bool closable, QWidget* parent)
     : QFrame(parent)
     , closable_(closable) {
     setObjectName("DockingTab");
@@ -19,7 +19,7 @@ DockingTab::DockingTab(QString title, bool closable, QWidget* parent)
     layout->setContentsMargins(13, 0, 9, 0);
     layout->setSpacing(10);
 
-    titleLabel_ = new QLabel(std::move(title), this);
+    titleLabel_ = new QLabel(title, this);
     titleLabel_->setObjectName("DockingTabTitle");
     titleLabel_->setProperty("active", false);
     layout->addWidget(titleLabel_);

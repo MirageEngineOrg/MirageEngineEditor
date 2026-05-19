@@ -31,7 +31,7 @@ public:
     [[nodiscard]] bool IsDragZone(const QPoint& localPosition) const;
     [[nodiscard]] bool IsFloatingDragHandle(QObject* watched, const QPoint& localPosition) const;
     [[nodiscard]] int GetExternalPlaceholderIndex() const noexcept;
-    void MoveTab(int from, int to);
+    void MoveTab(int from_idx, int to_idx);
     void RemoveTab(int index);
     void SetCurrentIndex(int index);
     void ClearExternalPlaceholder();
@@ -41,9 +41,8 @@ signals:
     void CurrentChanged(int index);
     void TabDetachRequested(int index, QPoint globalPosition);
     void TabCloseRequested(int index);
-    void TabMoveRequested(int from, int to);
-    void TabTransferRequested(int from, DockingTabBar* targetTabBar, int to);
-
+    void TabMoveRequested(int from_idx, int to_idx);
+    void TabTransferRequested(int from, Mirage::EditorQt::DockingTabBar* targetTabBar, int to_idx);
 private:
     void ApplyStyles();
     void BeginTabDrag(DockingTab* tab, const QPoint& globalPosition);

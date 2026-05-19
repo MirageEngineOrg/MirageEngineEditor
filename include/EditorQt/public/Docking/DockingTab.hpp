@@ -13,7 +13,7 @@ class DockingTab final : public QFrame {
     Q_OBJECT
 
 public:
-    explicit DockingTab(QString title, bool closable, QWidget* parent = nullptr);
+    explicit DockingTab(const QString& title, bool closable, QWidget* parent = nullptr);
 
     [[nodiscard]] bool IsClosable() const noexcept;
     [[nodiscard]] bool IsDragZone(const QPoint& localPosition) const;
