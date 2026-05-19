@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/editorqt">
         <file alias="img/icons/logo.png">../../include/EditorQt/private/resources/img/icons/logo.png</file>
+        <file alias="styles/docking.css">../../include/EditorQt/private/resources/styles/docking.css</file>
         <file alias="styles/editor_title_bar.css">../../include/EditorQt/private/resources/styles/editor_title_bar.css</file>
     </qresource>
 </RCC>

@@ -1,0 +1,72 @@
+#DockingWindowRoot {
+    background-color: #202732;
+    border: 1px solid #303844;
+    border-radius: 12px;
+}
+
+#DockingTabBarSurface {
+    background-color: #1b212a;
+    border-bottom: 1px solid rgba(57, 66, 77, 0.5);
+}
+
+#DockingToolBarSurface {
+    background-color: #222a35;
+    border-bottom: 1px solid rgba(57, 66, 77, 0.55);
+}
+
+#DockingContentSurface {
+    background-color: #1c232d;
+    border: none;
+}
+
+#DockingTab {
+    background-color: rgba(255, 255, 255, 0.06);
+    border: none;
+    border-radius: 6px;
+}
+
+#DockingTab[active="true"] {
+    background-color: rgba(47, 69, 80, 0.34);
+}
+
+#DockingTabTitle {
+    color: #a3acb6;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+#DockingTabTitle[active="true"] {
+    color: #e3e7ec;
+}
+
+#DockingTabCloseButton {
+    background: transparent;
+    border: none;
+    color: #7e8893;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 0px;
+}
+
+#DockingTabCloseButton[active="true"] {
+    color: #afc2cd;
+}
+
+#DockingTabCloseButton:disabled {
+    color: #5f6974;
+}
+
+#DockingTabCloseButton:hover {
+    color: #e3e7ec;
+}
+
+#DockingDemoContent {
+    background-color: transparent;
+    border: none;
+}
+
+#DockingDemoText {
+    color: #dce4eb;
+    font-size: 18px;
+    font-weight: 500;
+}

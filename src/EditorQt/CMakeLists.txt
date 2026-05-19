@@ -5,10 +5,24 @@ qt_standard_project_setup()
 
 qt_add_resources(ENGINE_RESOURCES resources.qrc)
 qt_add_executable(MirageEngineEditor
+    Docking/DockingTab.cpp
+    Docking/DockingTabBar.cpp
+    Docking/DockingWidget.cpp
+    Docking/DockingWindow.cpp
+    Docking/Demo/InspectorDockingWidget.cpp
+    Docking/Demo/SceneDockingWidget.cpp
     EditorTitleBar/EditorTitleBar.cpp
+    ${CMAKE_SOURCE_DIR}/include/EditorQt/public/Docking/DockingTab.hpp
+    ${CMAKE_SOURCE_DIR}/include/EditorQt/public/Docking/DockingTabBar.hpp
+    ${CMAKE_SOURCE_DIR}/include/EditorQt/public/Docking/DockingWidget.hpp
+    ${CMAKE_SOURCE_DIR}/include/EditorQt/public/Docking/DockingWindow.hpp
+    ${CMAKE_SOURCE_DIR}/include/EditorQt/public/Docking/Demo/InspectorDockingWidget.hpp
+    ${CMAKE_SOURCE_DIR}/include/EditorQt/public/Docking/Demo/SceneDockingWidget.hpp
+    ${CMAKE_SOURCE_DIR}/include/EditorQt/public/EditorTitleBar/EditorTitleBar.hpp
+    ${CMAKE_SOURCE_DIR}/include/EditorQt/public/MainWindow/MainWindow.hpp
     main.cpp
     MainWindow/MainWindow.cpp
-        ${ENGINE_RESOURCES}
+    ${ENGINE_RESOURCES}
 )
 
 
