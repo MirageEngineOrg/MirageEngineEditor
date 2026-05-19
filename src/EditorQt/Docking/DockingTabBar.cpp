@@ -271,7 +271,7 @@ void DockingTabBar::CommitDragTransfer(DockingTabBar* targetTabBar) {
 
 int DockingTabBar::ComputeDropIndex(int localX) const {
     int targetIndex = 0;
-    for (const auto tab : tabs_) {
+    for (const auto *const tab : tabs_) {
         if (tab == dragTab_) {
             continue;
         }
@@ -286,8 +286,8 @@ int DockingTabBar::ComputeDropIndex(int localX) const {
 
 int DockingTabBar::ComputeDropIndexForExternalPosition(int localX) const {
     int targetIndex = 0;
-    for (qsizetype index = 0; index < tabs_.size(); ++index) {
-        if (localX > tabs_.at(index)->geometry().center().x()) {
+    for (const auto *const tab : tabs_) {
+        if (localX > tab->geometry().center().x()) {
             ++targetIndex;
         }
     }

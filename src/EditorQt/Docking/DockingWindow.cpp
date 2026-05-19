@@ -279,16 +279,15 @@ void DockingWindow::OnTabMoveRequested(const int from_idx, const int to_idx) {
     stack_->removeWidget(widget);
     stack_->insertWidget(to_idx, widget);
 
-    if (wasCurrent) {
-        stack_->setCurrentIndex(to_idx);
-    } else if (stack_->currentIndex() == from_idx) {
+    if (wasCurrent || stack_->currentIndex() == from_idx) {
         stack_->setCurrentIndex(to_idx);
     }
 
     RefreshWindowTitle();
 }
 
-void DockingWindow::OnTabTransferRequested(int from_idx, DockingTabBar *targetTabBar, int to_idx) {
+void DockingWindow::OnTabTransferRequested(const int from_idx, DockingTabBar *targetTabBar,
+                                           const int to_idx) {
     TransferDockWidgetTo(from_idx, targetTabBar, to_idx, {}, {}, false);
 }
 
