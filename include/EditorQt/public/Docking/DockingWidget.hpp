@@ -11,6 +11,7 @@ public:
     explicit DockingWidget(QString title, bool closable, QWidget* parent = nullptr);
     ~DockingWidget() override = default;
 
+    [[nodiscard]] virtual QWidget* CreateToolBarWidget(QWidget* parent);
     [[nodiscard]] bool IsClosable() const noexcept;
     [[nodiscard]] const QString& GetTitle() const noexcept;
 

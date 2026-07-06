@@ -3,5 +3,6 @@
         <file alias="img/icons/logo.png">../../include/EditorQt/private/resources/img/icons/logo.png</file>
         <file alias="styles/docking.css">../../include/EditorQt/private/resources/styles/docking.css</file>
         <file alias="styles/editor_title_bar.css">../../include/EditorQt/private/resources/styles/editor_title_bar.css</file>
+        <file alias="styles/search_nodes_modal_widget.css">../../include/EditorQt/private/resources/styles/search_nodes_modal_widget.css</file>
     </qresource>
 </RCC>

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(MirageEngineEditor VERSION 0.1.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
+include(CTest)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,3 +36,7 @@ endfunction()
 
 add_subdirectory(src/EditorCore)
 add_subdirectory(src/EditorQt)
+
+if(BUILD_TESTING)
+    add_subdirectory(testing)
+endif()

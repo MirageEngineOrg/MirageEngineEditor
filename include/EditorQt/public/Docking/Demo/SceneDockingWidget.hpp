@@ -7,6 +7,8 @@ namespace Mirage::EditorQt {
 class SceneDockingWidget final : public DockingWidget {
 public:
     explicit SceneDockingWidget(QString title, bool closable, QWidget* parent = nullptr);
+
+    [[nodiscard]] QWidget* CreateToolBarWidget(QWidget* parent) override;
 };
 
 } // namespace Mirage::EditorQt

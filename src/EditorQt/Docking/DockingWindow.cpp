@@ -3,9 +3,11 @@
 #include "Docking/DockingInternal.hpp"
 #include "Docking/DockingTabBar.hpp"
 #include "Docking/DockingWidget.hpp"
+#include "Docking/DockingWorkspacePage.hpp"
 
 #include <QByteArray>
 #include <QFile>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QPoint>
 #include <QStackedWidget>
@@ -43,36 +45,44 @@ void EnableSnapAndResize(QWidget* widget) {
 namespace Mirage::EditorQt {
 
 DockingWindow::DockingWindow(QWidget* parent)
+    : DockingWindow(nullptr, parent) {
+}
+
+DockingWindow::DockingWindow(DockingTabBar* externalTabBar, QWidget* parent)
     : QFrame(parent) {
     if (parent == nullptr) {
         setWindowFlags(Qt::FramelessWindowHint);
     }
 
     setObjectName("DockingWindowRoot");
-    setMinimumSize(320, 240);
+    setMinimumSize(0, 0);
 
     auto* rootLayout = new QVBoxLayout(this);
     rootLayout->setContentsMargins(0, 0, 0, 0);
     rootLayout->setSpacing(0);
 
-    tabBar_ = new DockingTabBar(this);
-    rootLayout->addWidget(tabBar_);
+    ownsTabBar_ = externalTabBar == nullptr;
+    if (ownsTabBar_) {
+        tabBar_ = new DockingTabBar(this);
+        rootLayout->addWidget(tabBar_);
+    } else {
+        tabBar_ = externalTabBar;
+    }
+    tabBar_->SetHost(this);
 
     toolBarSurface_ = new QWidget(this);
     toolBarSurface_->setObjectName("DockingToolBarSurface");
     toolBarSurface_->setFixedHeight(kDockingToolBarHeight);
+    toolBarLayout_ = new QHBoxLayout(toolBarSurface_);
+    toolBarLayout_->setContentsMargins(12, 0, 12, 0);
+    toolBarLayout_->setSpacing(8);
     rootLayout->addWidget(toolBarSurface_);
 
     stack_ = new QStackedWidget(this);
     stack_->setObjectName("DockingContentSurface");
     rootLayout->addWidget(stack_, 1);
 
-    connect(tabBar_, &DockingTabBar::CurrentChanged, this, &DockingWindow::OnCurrentTabChanged);
-    connect(tabBar_, &DockingTabBar::TabDetachRequested, this, &DockingWindow::OnTabDetachRequested);
-    connect(tabBar_, &DockingTabBar::TabCloseRequested, this, &DockingWindow::OnTabCloseRequested);
-    connect(tabBar_, &DockingTabBar::TabMoveRequested, this, &DockingWindow::OnTabMoveRequested);
-    connect(tabBar_, &DockingTabBar::TabTransferRequested, this, &DockingWindow::OnTabTransferRequested);
-
+    ConnectTabBarSignals();
     ApplyStyles();
 
 #ifdef Q_OS_WIN
@@ -80,6 +90,14 @@ DockingWindow::DockingWindow(QWidget* parent)
         EnableSnapAndResize(this);
     }
 #endif
+}
+
+void DockingWindow::ConnectTabBarSignals() {
+    connect(tabBar_, &DockingTabBar::CurrentChanged, this, &DockingWindow::OnCurrentTabChanged);
+    connect(tabBar_, &DockingTabBar::TabDetachRequested, this, &DockingWindow::OnTabDetachRequested);
+    connect(tabBar_, &DockingTabBar::TabCloseRequested, this, &DockingWindow::OnTabCloseRequested);
+    connect(tabBar_, &DockingTabBar::TabMoveRequested, this, &DockingWindow::OnTabMoveRequested);
+    connect(tabBar_, &DockingTabBar::TabTransferRequested, this, &DockingWindow::OnTabTransferRequested);
 }
 
 #ifdef Q_OS_WIN
@@ -174,13 +192,73 @@ bool DockingWindow::IsFloatingWindow() const noexcept {
     return parentWidget() == nullptr && isWindow();
 }
 
+bool DockingWindow::IsEmbeddedInWorkspace() const noexcept {
+    return FindWorkspacePage() != nullptr;
+}
+
+DockingWorkspacePage* DockingWindow::FindWorkspacePage() const noexcept {
+    for (QWidget* ancestor = parentWidget(); ancestor != nullptr; ancestor = ancestor->parentWidget()) {
+        if (auto* workspacePage = dynamic_cast<DockingWorkspacePage*>(ancestor); workspacePage != nullptr) {
+            return workspacePage;
+        }
+    }
+
+    return nullptr;
+}
+
 void DockingWindow::SetChromeVisible(bool visible) {
-    tabBar_->setVisible(visible);
+    SetTabBarVisible(visible);
+    SetToolBarVisible(visible);
+}
+
+void DockingWindow::SetTabBarVisible(bool visible) {
+    if (ownsTabBar_) {
+        tabBar_->setVisible(visible);
+    }
+}
+
+void DockingWindow::SetToolBarVisible(bool visible) {
     toolBarSurface_->setVisible(visible);
 }
 
 void DockingWindow::addDockWidget(DockingWidget* dockingWidget) {
     addDockWidgetAt(dockingWidget, stack_->count());
+}
+
+void DockingWindow::MakeFloating(const QPoint& globalPosition, const QSize& size) {
+    setParent(nullptr);
+    setWindowFlags(Qt::FramelessWindowHint);
+    SetChromeVisible(true);
+    resize(size);
+    move(globalPosition - QPoint(48, 12));
+    show();
+
+#ifdef Q_OS_WIN
+    EnableSnapAndResize(this);
+#endif
+}
+
+bool DockingWindow::DetachFromWorkspaceToFloating(const QPoint& globalPosition) {
+    DockingWorkspacePage* workspacePage = FindWorkspacePage();
+    if (workspacePage == nullptr) {
+        return false;
+    }
+
+    workspacePage->RemoveDockWindow(this);
+    MakeFloating(globalPosition, size());
+    return true;
+}
+
+int DockingWindow::InsertDockWidgetIntoTabBar(
+    DockingTabBar* targetTabBar,
+    DockingWidget* dockingWidget,
+    int index
+) {
+    if (targetTabBar != tabBar_) {
+        return -1;
+    }
+
+    return addDockWidgetAt(dockingWidget, index);
 }
 
 int DockingWindow::addDockWidgetAt(DockingWidget* dockingWidget, int index) {
@@ -195,6 +273,7 @@ int DockingWindow::addDockWidgetAt(DockingWidget* dockingWidget, int index) {
     tabBar_->SetCurrentIndex(tabIndex);
     stack_->setCurrentIndex(tabIndex);
     RefreshWindowTitle();
+    RefreshToolBar();
     return tabIndex;
 }
 
@@ -207,33 +286,68 @@ void DockingWindow::TransferDockWidgetTo(const int from, DockingTabBar *targetTa
         return;
     }
 
-    auto* targetDockingWindow = dynamic_cast<DockingWindow*>(targetTabBar->parentWidget());
-    if (targetDockingWindow == nullptr) {
+    DockingTabHost* targetHost = targetTabBar->GetHost();
+    if (targetHost == nullptr) {
         addDockWidgetAt(dockingWidget, from);
         return;
     }
 
     targetTabBar->ClearExternalPlaceholder();
-    const int insertedIndex = targetDockingWindow->addDockWidgetAt(dockingWidget, to_idx);
+    const int insertedIndex = targetHost->InsertDockWidgetIntoTabBar(
+        targetTabBar,
+        dockingWidget,
+        to_idx
+    );
+    if (insertedIndex < 0) {
+        addDockWidgetAt(dockingWidget, from);
+        return;
+    }
+
     if (continueDrag) {
         targetTabBar->ContinueTransferredDrag(insertedIndex, globalPosition, grabOffset);
     }
 
-    if (tabBar_->GetTabCount() == 0 && isWindow()) {
-        close();
+    if (tabBar_->GetTabCount() == 0) {
+        DestroyIfEmpty();
         return;
     }
 
     RefreshWindowTitle();
 }
 
+bool DockingWindow::TransferDockWidgetToWorkspace(
+    const int from,
+    DockingWorkspacePage* targetWorkspacePage,
+    const QPoint& globalPosition
+) {
+    DockingWidget* dockingWidget = TakeDockWidget(from);
+    if (dockingWidget == nullptr || targetWorkspacePage == nullptr) {
+        return false;
+    }
+
+    if (!targetWorkspacePage->InsertDockWidgetAtDropPlaceholder(dockingWidget, globalPosition)) {
+        addDockWidgetAt(dockingWidget, from);
+        return false;
+    }
+
+    if (tabBar_->GetTabCount() == 0) {
+        DestroyIfEmpty();
+        return true;
+    }
+
+    RefreshWindowTitle();
+    RefreshToolBar();
+    return true;
+}
+
 void DockingWindow::OnCurrentTabChanged(int index) {
     stack_->setCurrentIndex(index);
     RefreshWindowTitle();
+    RefreshToolBar();
 }
 
 void DockingWindow::OnTabDetachRequested(int index, QPoint globalPosition) {
-    if (tabBar_->GetTabCount() <= 1) {
+    if (tabBar_->GetTabCount() <= 1 && !IsEmbeddedInWorkspace()) {
         return;
     }
 
@@ -252,6 +366,14 @@ void DockingWindow::OnTabDetachRequested(int index, QPoint globalPosition) {
     if (QWindow* nativeWindow = floatingWindow->windowHandle(); nativeWindow != nullptr) {
         nativeWindow->startSystemMove();
     }
+
+    if (tabBar_->GetTabCount() == 0) {
+        DestroyIfEmpty();
+        return;
+    }
+
+    RefreshWindowTitle();
+    RefreshToolBar();
 }
 
 void DockingWindow::OnTabCloseRequested(int index) {
@@ -261,12 +383,13 @@ void DockingWindow::OnTabCloseRequested(int index) {
     }
     dockingWidget->deleteLater();
 
-    if (tabBar_->GetTabCount() == 0 && isWindow()) {
-        close();
+    if (tabBar_->GetTabCount() == 0) {
+        DestroyIfEmpty();
         return;
     }
 
     RefreshWindowTitle();
+    RefreshToolBar();
 }
 
 void DockingWindow::OnTabMoveRequested(const int from_idx, const int to_idx) {
@@ -284,6 +407,7 @@ void DockingWindow::OnTabMoveRequested(const int from_idx, const int to_idx) {
     }
 
     RefreshWindowTitle();
+    RefreshToolBar();
 }
 
 void DockingWindow::OnTabTransferRequested(const int from_idx, DockingTabBar *targetTabBar,
@@ -300,6 +424,22 @@ void DockingWindow::ApplyStyles() {
     setStyleSheet(QString::fromUtf8(styleSheetFile.readAll()));
 }
 
+void DockingWindow::DestroyIfEmpty() {
+    if (tabBar_->GetTabCount() != 0) {
+        return;
+    }
+
+    if (isWindow()) {
+        close();
+        return;
+    }
+
+    if (DockingWorkspacePage* workspacePage = FindWorkspacePage(); workspacePage != nullptr) {
+        workspacePage->RemoveDockWindow(this);
+        deleteLater();
+    }
+}
+
 void DockingWindow::RefreshWindowTitle() {
     const int currentIndex = stack_->currentIndex();
     if (currentIndex < 0) {
@@ -314,6 +454,40 @@ void DockingWindow::RefreshWindowTitle() {
     if (isWindow()) {
         setWindowTitle(dockingWidget->GetTitle());
     }
+}
+
+void DockingWindow::RefreshToolBar() {
+    while (QLayoutItem* item = toolBarLayout_->takeAt(0)) {
+        if (QWidget* widget = item->widget(); widget != nullptr) {
+            widget->deleteLater();
+        }
+
+        delete item;
+    }
+
+    currentToolBarWidget_ = nullptr;
+
+    const int currentIndex = stack_->currentIndex();
+    if (currentIndex < 0) {
+        toolBarSurface_->setVisible(false);
+        return;
+    }
+
+    auto* dockingWidget = dynamic_cast<DockingWidget*>(stack_->widget(currentIndex));
+    if (dockingWidget == nullptr) {
+        toolBarSurface_->setVisible(false);
+        return;
+    }
+
+    currentToolBarWidget_ = dockingWidget->CreateToolBarWidget(toolBarSurface_);
+    if (currentToolBarWidget_ == nullptr) {
+        toolBarSurface_->setVisible(false);
+        return;
+    }
+
+    toolBarLayout_->addWidget(currentToolBarWidget_);
+    toolBarLayout_->addStretch(1);
+    toolBarSurface_->setVisible(true);
 }
 
 DockingWidget* DockingWindow::TakeDockWidget(int index) {
