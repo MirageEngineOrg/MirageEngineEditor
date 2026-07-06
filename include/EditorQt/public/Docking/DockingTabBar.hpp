@@ -12,6 +12,8 @@ class QString;
 namespace Mirage::EditorQt {
 
 class DockingTab;
+class DockingTabHost;
+class DockingWorkspacePage;
 
 class DockingTabBar final : public QWidget {
     Q_OBJECT
@@ -26,8 +28,10 @@ public:
         const QPoint& globalPosition,
         const QPoint& grabOffset
     );
+    void SetHost(DockingTabHost* host) noexcept;
     [[nodiscard]] int GetCurrentIndex() const noexcept;
     [[nodiscard]] int GetTabCount() const noexcept;
+    [[nodiscard]] DockingTabHost* GetHost() const noexcept;
     [[nodiscard]] bool IsDragZone(const QPoint& localPosition) const;
     [[nodiscard]] bool IsFloatingDragHandle(QObject* watched, const QPoint& localPosition) const;
     [[nodiscard]] int GetExternalPlaceholderIndex() const noexcept;
@@ -49,9 +53,16 @@ private:
     void BeginWindowDrag(DockingTab* tab, const QPoint& globalPosition);
     void CommitDragMove();
     void CommitDragTransfer(DockingTabBar* targetTabBar);
+    bool CommitWorkspaceDrop(
+        DockingWorkspacePage* targetWorkspacePage,
+        const QPoint& globalPosition
+    );
     [[nodiscard]] int ComputeDropIndex(int localX) const;
     [[nodiscard]] int ComputeDropIndexForExternalPosition(int localX) const;
     [[nodiscard]] DockingTabBar* FindDockingTabBarAtGlobal(const QPoint& globalPosition) const;
+    [[nodiscard]] DockingWorkspacePage* FindWorkspacePageAtGlobal(
+        const QPoint& globalPosition
+    ) const;
     void EnsureDragPreview();
     void MovePlaceholder(int targetIndex);
     void MovePreview(const QPoint& globalPosition);
@@ -68,11 +79,13 @@ private:
     bool dragInProgress_ {false};
     bool windowDragInProgress_ {false};
     DockingTabBar* hoverTargetTabBar_ {nullptr};
+    DockingWorkspacePage* hoverWorkspacePage_ {nullptr};
     int dragOriginalIndex_ {-1};
     int dragTargetIndex_ {-1};
     int externalPlaceholderIndex_ {-1};
     QHBoxLayout* layout_ {nullptr};
     QList<DockingTab*> tabs_;
+    DockingTabHost* host_ {nullptr};
     int currentIndex_ {-1};
     QPoint dragGrabOffset_;
     QPoint dragStartGlobalPosition_;

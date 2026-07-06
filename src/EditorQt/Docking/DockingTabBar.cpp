@@ -2,6 +2,7 @@
 
 #include "Docking/DockingInternal.hpp"
 #include "Docking/DockingTab.hpp"
+#include "Docking/DockingWorkspacePage.hpp"
 #include "Docking/DockingWindow.hpp"
 
 #include <QApplication>
@@ -107,8 +108,16 @@ int DockingTabBar::GetCurrentIndex() const noexcept {
     return currentIndex_;
 }
 
+void DockingTabBar::SetHost(DockingTabHost* host) noexcept {
+    host_ = host;
+}
+
 int DockingTabBar::GetTabCount() const noexcept {
     return static_cast<int>(tabs_.size());
+}
+
+DockingTabHost* DockingTabBar::GetHost() const noexcept {
+    return host_;
 }
 
 int DockingTabBar::GetExternalPlaceholderIndex() const noexcept {
@@ -269,6 +278,29 @@ void DockingTabBar::CommitDragTransfer(DockingTabBar* targetTabBar) {
     ResetDragState();
 }
 
+bool DockingTabBar::CommitWorkspaceDrop(
+    DockingWorkspacePage* targetWorkspacePage,
+    const QPoint& globalPosition
+) {
+    if (!dragInProgress_ || dragTab_ == nullptr || targetWorkspacePage == nullptr) {
+        ResetDragState();
+        return false;
+    }
+
+    dragTab_->releaseMouse();
+    dragTab_->show();
+
+    auto* dockingWindow = dynamic_cast<DockingWindow*>(parentWidget());
+    const bool transferred = dockingWindow != nullptr
+        && dockingWindow->TransferDockWidgetToWorkspace(
+            dragOriginalIndex_,
+            targetWorkspacePage,
+            globalPosition
+        );
+    ResetDragState();
+    return transferred;
+}
+
 int DockingTabBar::ComputeDropIndex(int localX) const {
     int targetIndex = 0;
     for (const auto *const tab : tabs_) {
@@ -306,7 +338,7 @@ DockingTabBar* DockingTabBar::FindDockingTabBarAtGlobal(const QPoint& globalPosi
             continue;
         }
 
-        if (dynamic_cast<DockingWindow*>(tabBar->parentWidget()) == nullptr) {
+        if (tabBar->GetHost() == nullptr) {
             continue;
         }
 
@@ -330,6 +362,20 @@ DockingTabBar* DockingTabBar::FindDockingTabBarAtGlobal(const QPoint& globalPosi
     }
 
     return foreignCandidate;
+}
+
+DockingWorkspacePage* DockingTabBar::FindWorkspacePageAtGlobal(const QPoint& globalPosition) const {
+    const auto widgets = QApplication::allWidgets();
+    for (QWidget* widget : widgets) {
+        auto* workspacePage = dynamic_cast<DockingWorkspacePage*>(widget);
+        if (workspacePage == nullptr || !workspacePage->ContainsGlobalPosition(globalPosition)) {
+            continue;
+        }
+
+        return workspacePage;
+    }
+
+    return nullptr;
 }
 
 void DockingTabBar::EnsureDragPreview() {
@@ -415,6 +461,9 @@ void DockingTabBar::ResetDragStateWithoutRestore() {
     if (hoverTargetTabBar_ != nullptr && hoverTargetTabBar_ != this) {
         hoverTargetTabBar_->ClearExternalPlaceholder();
     }
+    if (hoverWorkspacePage_ != nullptr) {
+        hoverWorkspacePage_->ClearDropPlaceholder();
+    }
 
     dragPreview_ = nullptr;
     dragPlaceholder_ = nullptr;
@@ -422,6 +471,7 @@ void DockingTabBar::ResetDragStateWithoutRestore() {
     dragInProgress_ = false;
     windowDragInProgress_ = false;
     hoverTargetTabBar_ = nullptr;
+    hoverWorkspacePage_ = nullptr;
     dragOriginalIndex_ = -1;
     dragTargetIndex_ = -1;
     externalPlaceholderIndex_ = -1;
@@ -449,6 +499,9 @@ void DockingTabBar::ResetDragState() {
     if (hoverTargetTabBar_ != nullptr && hoverTargetTabBar_ != this) {
         hoverTargetTabBar_->ClearExternalPlaceholder();
     }
+    if (hoverWorkspacePage_ != nullptr) {
+        hoverWorkspacePage_->ClearDropPlaceholder();
+    }
 
     dragPreview_ = nullptr;
     dragPlaceholder_ = nullptr;
@@ -456,6 +509,7 @@ void DockingTabBar::ResetDragState() {
     dragInProgress_ = false;
     windowDragInProgress_ = false;
     hoverTargetTabBar_ = nullptr;
+    hoverWorkspacePage_ = nullptr;
     dragOriginalIndex_ = -1;
     dragTargetIndex_ = -1;
     externalPlaceholderIndex_ = -1;
@@ -534,7 +588,18 @@ bool DockingTabBar::eventFilter(QObject* watched, QEvent* event) {
 
             if (!dragInProgress_) {
                 if (tabs_.size() <= 1) {
-                    BeginWindowDrag(tab, currentGlobalPosition);
+                    auto* dockingWindow = dynamic_cast<DockingWindow*>(parentWidget());
+                    if (dockingWindow != nullptr && dockingWindow->IsEmbeddedInWorkspace()) {
+                        if (dockingWindow->DetachFromWorkspaceToFloating(currentGlobalPosition)) {
+                            BeginWindowDrag(tab, currentGlobalPosition);
+                        } else {
+                            BeginTabDrag(tab, currentGlobalPosition);
+                        }
+                    } else if (dockingWindow != nullptr && dockingWindow->IsFloatingWindow()) {
+                        BeginWindowDrag(tab, currentGlobalPosition);
+                    } else {
+                        BeginTabDrag(tab, currentGlobalPosition);
+                    }
                 } else {
                     BeginTabDrag(tab, currentGlobalPosition);
                 }
@@ -546,11 +611,17 @@ bool DockingTabBar::eventFilter(QObject* watched, QEvent* event) {
             }
 
             DockingTabBar* targetTabBar = FindDockingTabBarAtGlobal(currentGlobalPosition);
+            DockingWorkspacePage* targetWorkspacePage =
+                targetTabBar == nullptr ? FindWorkspacePageAtGlobal(currentGlobalPosition) : nullptr;
             if (hoverTargetTabBar_ != nullptr && hoverTargetTabBar_ != this
                 && hoverTargetTabBar_ != targetTabBar) {
                 hoverTargetTabBar_->ClearExternalPlaceholder();
             }
+            if (hoverWorkspacePage_ != nullptr && hoverWorkspacePage_ != targetWorkspacePage) {
+                hoverWorkspacePage_->ClearDropPlaceholder();
+            }
             hoverTargetTabBar_ = targetTabBar;
+            hoverWorkspacePage_ = targetWorkspacePage;
 
             if (windowDragInProgress_) {
                 if (targetTabBar != nullptr && targetTabBar != this) {
@@ -599,6 +670,8 @@ bool DockingTabBar::eventFilter(QObject* watched, QEvent* event) {
                         targetTabBar->ComputeDropIndexForExternalPosition(targetLocalPosition.x())
                     );
                 }
+            } else if (targetWorkspacePage != nullptr) {
+                targetWorkspacePage->ShowDropPlaceholder(currentGlobalPosition);
             }
 
             return true;
@@ -607,8 +680,12 @@ bool DockingTabBar::eventFilter(QObject* watched, QEvent* event) {
                 const QPoint releaseGlobalPosition =
                     static_cast<QMouseEvent*>(event)->globalPosition().toPoint();
                 DockingTabBar* targetTabBar = FindDockingTabBarAtGlobal(releaseGlobalPosition);
+                DockingWorkspacePage* targetWorkspacePage =
+                    targetTabBar == nullptr ? FindWorkspacePageAtGlobal(releaseGlobalPosition) : nullptr;
                 if (targetTabBar != nullptr && targetTabBar != this) {
                     CommitDragTransfer(targetTabBar);
+                } else if (targetWorkspacePage != nullptr) {
+                    CommitWorkspaceDrop(targetWorkspacePage, releaseGlobalPosition);
                 } else if (targetTabBar == this && !windowDragInProgress_) {
                     CommitDragMove();
                 } else {

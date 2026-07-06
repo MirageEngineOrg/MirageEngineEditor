@@ -1,0 +1,130 @@
+#SearchNodesModalRoot {
+    background-color: #202833;
+    border: 1px solid #303844;
+    border-radius: 18px;
+}
+
+#SearchNodesModalTitle {
+    color: #eef3f8;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+#SearchNodesModalSubtitle {
+    color: #9eabb8;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+#SearchNodesModalSearchField {
+    min-height: 44px;
+    padding: 0 16px;
+    background-color: #171e27;
+    border: 1px solid #2c3744;
+    border-radius: 12px;
+    color: #dde6ee;
+    font-size: 14px;
+}
+
+#SearchNodesModalSearchField:disabled {
+    color: #7f8b97;
+}
+
+#SearchNodesModalSearchField::placeholder {
+    color: #7f8b97;
+}
+
+#SearchNodesModalTreePanel {
+    background-color: #161c24;
+    border: 1px solid #2c3744;
+    border-radius: 14px;
+}
+
+#SearchNodesModalTreeHint {
+    color: #73889a;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+#SearchNodesModalTree {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #c9d3dd;
+    font-size: 14px;
+}
+
+#SearchNodesModalTree::item {
+    min-height: 34px;
+    padding: 0 10px;
+    border-radius: 14px;
+}
+
+#SearchNodesModalTree::item:selected {
+    background-color: #2a3846;
+    color: #eef3f8;
+}
+
+#SearchNodesModalTree::item:hover {
+    background-color: rgba(42, 56, 70, 0.75);
+    color: #eef3f8;
+}
+
+#SearchNodesModalTree::branch {
+    background: transparent;
+    border-image: none;
+    image: none;
+}
+
+#SearchNodesModalTreeArrow {
+    color: #afc0ce;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#SearchNodesModalTreeGroupLabel {
+    color: #eef4f9;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#SearchNodesModalTreeNodeLabel {
+    color: #c9d3dd;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#SearchNodesModalTree QScrollBar:vertical {
+    width: 8px;
+    margin: 0;
+    background: transparent;
+}
+
+#SearchNodesModalTree QScrollBar::handle:vertical {
+    min-height: 64px;
+    border-radius: 2px;
+    background-color: #55667a;
+}
+
+#SearchNodesModalTree QScrollBar::add-line:vertical,
+#SearchNodesModalTree QScrollBar::sub-line:vertical,
+#SearchNodesModalTree QScrollBar::add-page:vertical,
+#SearchNodesModalTree QScrollBar::sub-page:vertical {
+    height: 0;
+    background: transparent;
+}
+
+#SearchNodesModalFooter {
+    background: transparent;
+}
+
+#SearchNodesModalKeyboardHint {
+    color: #8593a0;
+    font-size: 12px;
+}
+
+#SearchNodesModalEscapeHint {
+    color: #afc0ce;
+    font-size: 12px;
+    font-weight: 500;
+}

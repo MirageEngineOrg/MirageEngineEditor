@@ -10,6 +10,11 @@ DockingWidget::DockingWidget(QString title, bool closable, QWidget* parent)
     , closable_(closable) {
 }
 
+QWidget* DockingWidget::CreateToolBarWidget(QWidget* parent) {
+    Q_UNUSED(parent);
+    return nullptr;
+}
+
 bool DockingWidget::IsClosable() const noexcept {
     return closable_;
 }

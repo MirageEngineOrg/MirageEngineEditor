@@ -2,12 +2,17 @@
 
 #include "Application/EditorApplication.hpp"
 #include "Docking/DockingTabBar.hpp"
-#include "Docking/DockingWindow.hpp"
+#include "Docking/MainDockingWindow.hpp"
 #include "EditorTitleBar/EditorTitleBar.hpp"
 
 #include <QMainWindow>
 
+class QPushButton;
+class QWidget;
+
 namespace Mirage::EditorQt {
+
+class DockingWorkspacePage;
 
 class MainWindow final : public QMainWindow {
 public:
@@ -21,9 +26,10 @@ private:
     Mirage::EditorCore::EditorApplication editorApplication_;
     EditorTitleBar* editorTitleBar_ {nullptr};
     DockingTabBar* mainDockingTabBar_ {nullptr};
-    DockingWindow* mainDockingWindow_ {nullptr};
-    DockingWindow* floatingDockingWindow_ {nullptr};
-    DockingWindow* floatingDockingWindow2_ {nullptr};
+    MainDockingWindow* mainDockingWindow_ {nullptr};
+    QWidget* bottomUtilityPanel_ {nullptr};
+    QWidget* explorerPanel_ {nullptr};
+    QPushButton* openExplorerButton_ {nullptr};
 };
 
 } // namespace Mirage::EditorQt
